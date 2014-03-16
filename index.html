@@ -3,12 +3,16 @@
 <style>
 
 .counties {
-  fill: none;
+  fill: #eee;
+  stroke: #fff;
+  stroke-width: 1;
+  stroke-opacity: 0.4;
 }
 
 .states {
   fill: none;
   stroke: #fff;
+  stroke-width: 1.5;
   stroke-linejoin: round;
 }
 
@@ -56,7 +60,15 @@ function ready(error, us) {
       .data(topojson.feature(us, us.objects.counties).features)
     .enter().append("path")
       .attr("class", function(d) { return quantize(rateById.get(d.id)); })
-      .attr("d", path);
+      .attr("d", path)
+	  .on("mouseover", function(d,i) {
+        d3.select(this.parentNode.appendChild(this)).transition().duration(200)
+        .style({'stroke-opacity':1,'stroke':'#F00'});
+	  })
+	  .on("mouseout", function(){
+        d3.select(this.parentNode.appendChild(this)).transition().duration(300)
+        .style({'stroke-opacity':0.4,'stroke':'#fff'});
+    });
 
   svg.append("path")
       .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
