@@ -1,79 +1,80 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			.counties {
+			  fill: #eee;
+			  stroke: #fff;
+			  stroke-width: 1;
+			  stroke-opacity: 0.4;
+			}
 
-.counties {
-  fill: #eee;
-  stroke: #fff;
-  stroke-width: 1;
-  stroke-opacity: 0.4;
-}
+			.states {
+			  fill: none;
+			  stroke: #fff;
+			  stroke-width: 1.5;
+			  stroke-linejoin: round;
+			}
 
-.states {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1.5;
-  stroke-linejoin: round;
-}
+			.q0-9 { fill:rgb(255,229,204); }
+			.q1-9 { fill:rgb(255,204,204); }
+			.q2-9 { fill:rgb(255,153,153); }
+			.q3-9 { fill:rgb(255,102,102); }
+			.q4-9 { fill:rgb(255,51,51); }
+			.q5-9 { fill:rgb(255,0,0); }
+			.q6-9 { fill:rgb(204,0,0); }
+			.q7-9 { fill:rgb(153,0,0); }
+			.q8-9 { fill:rgb(102,0,0); }
+			</style>
+	</head>
+	<body>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+		<script src="http://d3js.org/queue.v1.min.js"></script>
+		<script src="http://d3js.org/topojson.v1.min.js"></script>
+		<script>
 
-.q0-9 { fill:rgb(255,229,204); }
-.q1-9 { fill:rgb(255,204,204); }
-.q2-9 { fill:rgb(255,153,153); }
-.q3-9 { fill:rgb(255,102,102); }
-.q4-9 { fill:rgb(255,51,51); }
-.q5-9 { fill:rgb(255,0,0); }
-.q6-9 { fill:rgb(204,0,0); }
-.q7-9 { fill:rgb(153,0,0); }
-.q8-9 { fill:rgb(102,0,0); }
+		var width = 960,
+			height = 500;
 
-</style>
-<body>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://d3js.org/queue.v1.min.js"></script>
-<script src="http://d3js.org/topojson.v1.min.js"></script>
-<script>
+		var rateById = d3.map();
 
-var width = 960,
-    height = 500;
+		var quantize = d3.scale.quantize()
+			.domain([0, 100])
+			.range(d3.range(9).map(function(i) { return "q" + i + "-9"; }));
 
-var rateById = d3.map();
+		var path = d3.geo.path();
 
-var quantize = d3.scale.quantize()
-    .domain([0, 100])
-    .range(d3.range(9).map(function(i) { return "q" + i + "-9"; }));
+		var svg = d3.select("body").append("svg")
+			.attr("width", width)
+			.attr("height", height);
 
-var path = d3.geo.path();
+		queue()
+			.defer(d3.json, "us.json")
+			.defer(d3.tsv, "superfund.tsv", function(d) { rateById.set(d.FIPS, +d.HRS_SCORE); })
+			.await(ready);
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+		function ready(error, us) {
+		  svg.append("g")
+			  .attr("class", "counties")
+			.selectAll("path")
+			  .data(topojson.feature(us, us.objects.counties).features)
+			.enter().append("path")
+			  .attr("class", function(d) { return quantize(rateById.get(d.id)); })
+			  .attr("d", path)
+			  .on("mouseover", function(d,i) {
+				d3.select(this.parentNode.appendChild(this)).transition().duration(200)
+				.style({'stroke-opacity':1,'stroke':'#F00'});
+			  })
+			  .on("mouseout", function(){
+				d3.select(this.parentNode.appendChild(this)).transition().duration(300)
+				.style({'stroke-opacity':0.4,'stroke':'#fff'});
+			});
 
-queue()
-    .defer(d3.json, "us.json")
-    .defer(d3.tsv, "superfund.tsv", function(d) { rateById.set(d.FIPS, +d.HRS_SCORE); })
-    .await(ready);
-
-function ready(error, us) {
-  svg.append("g")
-      .attr("class", "counties")
-    .selectAll("path")
-      .data(topojson.feature(us, us.objects.counties).features)
-    .enter().append("path")
-      .attr("class", function(d) { return quantize(rateById.get(d.id)); })
-      .attr("d", path)
-	  .on("mouseover", function(d,i) {
-        d3.select(this.parentNode.appendChild(this)).transition().duration(200)
-        .style({'stroke-opacity':1,'stroke':'#F00'});
-	  })
-	  .on("mouseout", function(){
-        d3.select(this.parentNode.appendChild(this)).transition().duration(300)
-        .style({'stroke-opacity':0.4,'stroke':'#fff'});
-    });
-
-  svg.append("path")
-      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-      .attr("class", "states")
-      .attr("d", path);
-}
-
-</script>
+		  svg.append("path")
+			  .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+			  .attr("class", "states")
+			  .attr("d", path);
+		}
+		</script>
+	</body>
+</html>
