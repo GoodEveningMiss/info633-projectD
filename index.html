@@ -46,7 +46,7 @@ var svg = d3.select("body").append("svg")
 
 queue()
     .defer(d3.json, "us.json")
-    .defer(d3.tsv, "unemployment.tsv", function(d) { rateById.set(d.id, +d.rate); })
+    .defer(d3.tsv, "superfund.tsv", function(d) { rateById.set(d.FIPS, +d.HRS_SCORE); })
     .await(ready);
 
 function ready(error, us) {
