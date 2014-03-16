@@ -46,7 +46,7 @@
 			</style>
 	</head>
 	<body>
-    <h1 class="title">Counties by HRS Ranking of Superfund Sites</h1>
+    <h1 class="title">Counties by Highest HRS Ranking</h1>
 		<script src="http://d3js.org/d3.v3.min.js"></script>
 		<script src="http://d3js.org/queue.v1.min.js"></script>
 		<script src="http://d3js.org/topojson.v1.min.js"></script>
@@ -92,7 +92,7 @@
       
       queue()
         .defer(d3.json, "us.json")
-        .defer(d3.tsv, "superfund.tsv", function(d) { rateById.set(d.FIPS, +d.HRS_SCORE); })
+        .defer(d3.tsv, "HighestHRS.tsv", function(d) { rateById.set(d.fips, +d.hrs); })
         .await(ready);
 
       function ready(error, us) {
